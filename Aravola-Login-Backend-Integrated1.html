@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aravola – Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1a1030; --modal:#280f4e; --text:#fff; --muted:#c9c3d6;
+  --gold:#d4a85a; --gold-line:rgba(212,168,90,.6); --heading-tan:#b9a982;
+  --purple:#8b5cf6; --input-border:#c9c3d6; --scrim:rgba(80,80,84,.78);
+  --display:"Space Grotesk",system-ui,sans-serif; --body:"Outfit",system-ui,sans-serif;
+  color-scheme:dark;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--body);overflow:hidden}
+
+/* ---------- Page behind the modal ---------- */
+.space{position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 38% 28% at 92% 62%,rgba(255,140,170,.8),rgba(180,90,180,.45) 50%,transparent 78%),
+    radial-gradient(ellipse 25% 35% at 100% 38%,rgba(130,90,220,.65),transparent 70%),
+    radial-gradient(ellipse 30% 20% at 35% 28%,rgba(200,90,150,.35),transparent 70%),
+    radial-gradient(circle at 50% 50%,#2a1d4a,#120a24 85%)}
+.arc{position:fixed;border:1.5px solid var(--gold-line);border-radius:50%;width:120vh;height:120vh;left:48%;top:-50vh;
+  clip-path:inset(0 0 0 0)}
+.arc.low{top:auto;bottom:-70vh;left:46%}
+header{position:fixed;inset:0 0 auto 0;display:flex;justify-content:space-between;align-items:flex-start;padding:calc(0px + env(safe-area-inset-top,0px)) 28px 0 52px}
+.logo svg{width:150px;height:auto;display:block}
+.login-btn{margin-top:12px;font:600 17px var(--display);color:var(--text);background:rgba(255,255,255,.04);border:1.5px solid var(--gold-line);border-radius:10px;width:183px;height:54px;cursor:pointer}
+.hero{position:fixed;left:58px;top:360px}
+.hero h1{margin:0;font:700 82px/1.1 var(--display)}
+.hero h1 span{color:#f0c56c;display:block}
+.hero p{margin:12px 0 0;font:400 25px/1.15 var(--body);color:var(--muted);max-width:260px;text-align:center}
+.scrim{position:fixed;inset:0;background:var(--scrim)}
+
+/* ---------- Modal ---------- */
+.stage{position:fixed;inset:0;display:grid;place-items:center;padding:16px}
+.modal{position:relative;width:min(862px,100%);height:481px;background:var(--modal);border-radius:24px;overflow:hidden;
+  display:grid;grid-template-columns:1fr 1fr;box-shadow:0 24px 70px rgba(0,0,0,.5)}
+.modal[hidden]{display:none}
+.round{position:absolute;top:14px;width:22px;height:22px;border-radius:50%;border:0;padding:0;background:#a49c86;color:#280f4e;display:grid;place-items:center;cursor:pointer;z-index:3}
+.round.back{left:15px}.round.close{right:27px;width:24px;height:24px;top:14px}
+.round svg{width:12px;height:12px}
+.round:hover{background:#c2b99f}
+:focus-visible{outline:2px solid #f0c56c;outline-offset:2px}
+
+.left{padding:0 0 0 60px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2;margin-top:-6px}
+.left h2{margin:0;min-height:36px;font:700 24px/1.15 var(--display);color:var(--text);transition:color .5s,font-size .5s}
+.modal.returning .left h2{color:var(--heading-tan);font-size:31px;min-height:36px}
+.left .sub{margin:2px 0 30px;min-height:24px;font:500 20px/1.2 var(--display);color:var(--heading-tan)}
+.caret::after{content:"";display:inline-block;width:2px;height:.9em;margin-left:3px;background:currentColor;vertical-align:-.1em;animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+/* password swaps in below the email field */
+.pw{display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(-16px);pointer-events:none;
+  transition:grid-template-rows .55s cubic-bezier(.4,0,.2,1),opacity .45s ease .1s,transform .55s cubic-bezier(.4,0,.2,1)}
+.pw.show{grid-template-rows:1fr;opacity:1;transform:none;pointer-events:auto}
+.pw-inner{overflow:hidden;min-height:0;padding:0 3px}
+.go[disabled]{opacity:.7;cursor:wait}
+.field input[readonly]{color:#e9e4f3}
+label{font:500 15px var(--body);display:block;margin-bottom:6px}
+.field{position:relative;width:329px;max-width:100%;margin-bottom:20px}
+.field input{width:100%;height:34px;background:transparent;border:2px solid var(--input-border);border-radius:6px;
+  padding:0 40px 0 14px;color:var(--text);font:400 16px var(--body)}
+.field input::placeholder{color:#b7afc7}
+.field input.active,.field input:focus{outline:none;border-color:#d9a82f}
+.field svg{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:24px;height:24px;color:#d0cbdb}
+.field.dim svg{opacity:.55}
+.row{display:flex;align-items:center;justify-content:space-between;width:329px;max-width:100%;margin-top:22px}
+.tag{display:flex;align-items:center;gap:4px;font:500 17px var(--body)}
+.tag svg{width:22px;height:22px}
+.go{display:flex;align-items:center;gap:8px;background:var(--purple);color:#fff;border:0;border-radius:12px;
+  height:38px;padding:0 14px 0 10px;font:600 15px var(--body);cursor:pointer}
+.go:hover{background:#9a70ff}
+.go svg{width:16px;height:16px}
+.notice{margin:12px 0 0;font:500 13px var(--body);color:#f0c56c;min-height:18px}
+
+.right{position:relative}
+.swoosh{position:absolute;right:0;bottom:0;width:100%;height:100%}
+.parrot{position:absolute;left:50%;bottom:34px;width:270px;transform:translateX(-40%)}
+
+@media (max-width:780px){
+  .modal{grid-template-columns:1fr;height:auto;min-height:481px;padding:56px 0 230px}
+  .left{padding:0 22px;margin-top:0}
+  .right{position:absolute;inset:auto 0 0 0;height:220px}
+  .parrot{width:190px;left:auto;right:10px;bottom:6px;transform:none}
+  .hero,.arc{display:none}
+  .login-btn{width:120px;height:44px}
+}
+@media (prefers-reduced-motion:reduce){.pw{transition:none}}
+@media (prefers-reduced-motion:no-preference){
+  .modal{animation:rise .4s ease-out both}
+  @keyframes rise{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+}
+.pw.second{transition-delay:.12s}
+.left .sub{margin-bottom:24px}
+.notice{margin-top:8px;min-height:16px}
+.otp{display:flex;gap:10px}
+.otp input{width:44px;height:50px;padding:0;text-align:center;background:transparent;color:var(--text);
+  border:2px solid var(--input-border);border-radius:8px;font:600 22px var(--display)}
+.otp input:focus{outline:none;border-color:#d9a82f}
+.otp-meta{margin:12px 0 4px;font:400 13px var(--body);color:var(--muted)}
+.link{background:none;border:0;padding:0;color:#f0c56c;font:500 13px var(--body);cursor:pointer;text-decoration:underline}
+.link[disabled]{color:var(--muted);text-decoration:none;cursor:default}
+</style>
+</head>
+<body>
+<div class="space"></div><div class="arc"></div><div class="arc low"></div>
+<header>
+  <div class="logo" aria-label="Aravola">
+    <svg viewBox="0 0 150 100" fill="none" stroke="#6fa8d8" stroke-width="2" stroke-linecap="round">
+      <path d="M38 6c-4 16-14 24-26 30 12 0 20-3 26-10 6 7 14 10 26 10-12-6-22-14-26-30z"/>
+      <path d="M38 26c0 20-2 40 0 64M30 44c-8 6-12 14-12 26M46 44c8 6 12 14 12 26" stroke="#4d86bf"/>
+      <path d="M78 50c10-10 22 6 34-4s16 0 28-6" stroke="#d4a85a"/>
+    </svg>
+  </div>
+  <button class="login-btn" type="button">Login</button>
+</header>
+<section class="hero">
+  <h1>The Human<span>Hub</span></h1>
+  <p>Everyone Invest in</p>
+</section>
+<div class="scrim"></div>
+
+<div class="stage">
+  <div class="modal" id="modal" role="dialog" aria-labelledby="title">
+    <button class="round back" id="backBtn" type="button" aria-label="Go back">
+      <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6H2M5.5 2.5L2 6l3.5 3.5"/></svg>
+    </button>
+    <button class="round close" type="button" aria-label="Close" id="closeBtn">
+      <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l6 6M9 3l-6 6"/></svg>
+    </button>
+
+    <div class="left">
+      <h2 id="title">Hey cool, you made it here</h2>
+      <p class="sub" id="sub"></p>
+      <form id="form" novalidate>
+        <div class="pw show" id="emailWrap"><div class="pw-inner">
+        <label for="email">Email address</label>
+        <div class="field">
+          <input id="email" type="email" placeholder="Enter your email" autocomplete="email" required>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="18" height="14" rx="2"/><path d="M2 6l9 7 9-7"/><circle cx="19" cy="19" r="3.2" fill="#280f4e"/><path d="M20.5 19h-3M18.6 17.6L17.2 19l1.4 1.4"/></svg>
+        </div>
+        </div></div>
+        <div class="pw" id="pwWrap" aria-hidden="true"><div class="pw-inner">
+        <label for="password">Password</label>
+        <div class="field dim">
+          <input id="password" type="password" placeholder="Enter your Password" autocomplete="current-password" required>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="18" height="14" rx="2"/><path d="M2 6l9 7 9-7"/><circle cx="19" cy="19" r="3.2" fill="#280f4e"/><path d="M20.5 19h-3M18.6 17.6L17.2 19l1.4 1.4"/></svg>
+        </div>
+        </div></div>
+        <div class="pw second" id="pw2Wrap" aria-hidden="true"><div class="pw-inner">
+        <label for="password2">Re-type Password</label>
+        <div class="field dim">
+          <input id="password2" type="password" placeholder="Enter your Password" autocomplete="new-password">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="18" height="14" rx="2"/><path d="M2 6l9 7 9-7"/><circle cx="19" cy="19" r="3.2" fill="#280f4e"/><path d="M20.5 19h-3M18.6 17.6L17.2 19l1.4 1.4"/></svg>
+        </div>
+        </div></div>
+        <div class="pw second" id="otpWrap" aria-hidden="true"><div class="pw-inner">
+          <label id="otpLabel">Verification code</label>
+          <div class="otp" id="otpBoxes" role="group" aria-labelledby="otpLabel"></div>
+          <p class="otp-meta"><span id="otpTo"></span> · <button class="link" id="resendBtn" type="button">Resend code</button></p>
+        </div></div>
+        <div class="row">
+          <span class="tag">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="4.5" r="2" fill="currentColor"/><path d="M12 8l-3 3 3 2-1 6M12 8l4 3 3 1M12 13l3 3 1 4M9 11l-4 1M3 7h4M2 11h3M3 15h3"/></svg>
+            The race is on
+          </span>
+          <button class="go" id="goBtn" type="submit"><span id="goLabel">Let’s Go</span>
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h9a1 1 0 0 1 1 1v3H9.5L12 8.5 9.5 11H12v2a1 1 0 0 1-1 1H2z"/><path d="M13 6l3 2.5L13 11z"/></svg>
+          </button>
+        </div>
+        <p class="notice" id="notice" role="status"></p>
+      </form>
+    </div>
+
+    <div class="right" aria-hidden="true">
+      <svg class="swoosh" viewBox="0 0 431 481" preserveAspectRatio="xMaxYMax slice" fill="none">
+        <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#6b4d1c"/><stop offset=".6" stop-color="#d9a73f"/><stop offset="1" stop-color="#8a6422"/></linearGradient></defs>
+        <path d="M50 481C130 370 290 370 431 200V481z" fill="url(#g)" opacity=".85"/>
+        <path d="M90 481C170 390 320 400 431 270V481z" fill="#2c1357" opacity=".7"/>
+        <g stroke="#e8c36c" stroke-width=".6" opacity=".55">
+          <path d="M40 481C120 380 290 380 431 220"/><path d="M60 481C140 392 300 392 431 236"/>
+          <path d="M80 481C160 404 310 404 431 254"/><path d="M100 481C180 416 320 416 431 272"/>
+        </g>
+      </svg>
+      <!-- Mascot placeholder: replace this SVG with your parrot artwork (<img src="parrot.png">) -->
+      <svg class="parrot" viewBox="0 0 270 380">
+        <ellipse cx="135" cy="364" rx="70" ry="9" fill="#000" opacity=".25"/>
+        <path d="M78 190c-10 50-8 110 14 150h86c22-40 24-100 14-150z" fill="#4a5360"/>
+        <path d="M110 190h50l-6 50h-38z" fill="#d9b33a"/>
+        <rect x="92" y="262" width="86" height="14" rx="4" fill="#b7791f"/>
+        <rect x="124" y="260" width="22" height="18" rx="2" fill="#e8b84a"/>
+        <rect x="76" y="280" width="30" height="40" rx="6" fill="#b7791f"/>
+        <rect x="164" y="280" width="30" height="40" rx="6" fill="#b7791f"/>
+        <path d="M100 340l-18 18h30zM170 340l18 18h-30z" fill="#222"/>
+        <path d="M184 220l62-24 12 90-62 20z" fill="#2f5fb0"/>
+        <path d="M194 236l40-14M196 256l44-14M200 276l42-14" stroke="#9fc0f0" stroke-width="2"/>
+        <path d="M58 196c-18-14-24-40-14-62 6-12 18-8 20 2l4 30c6 8 10 18 8 30z" fill="#1f4fa6"/>
+        <rect x="46" y="116" width="16" height="30" rx="8" fill="#2c63c4"/>
+        <circle cx="135" cy="108" r="62" fill="#d9b33a"/>
+        <circle cx="112" cy="100" r="22" fill="#fff"/><circle cx="162" cy="100" r="22" fill="#fff"/>
+        <circle cx="112" cy="100" r="22" fill="none" stroke="#e1b73c" stroke-width="5"/>
+        <circle cx="162" cy="100" r="22" fill="none" stroke="#e1b73c" stroke-width="5"/>
+        <circle cx="114" cy="101" r="11" fill="#2b2118"/><circle cx="164" cy="101" r="11" fill="#2b2118"/>
+        <circle cx="118" cy="97" r="4" fill="#fff"/><circle cx="168" cy="97" r="4" fill="#fff"/>
+        <path d="M118 122c0-10 34-10 34 0 0 20-10 36-17 40-7-4-17-20-17-40z" fill="#1c1c1f"/>
+        <path d="M70 62c6-30 34-48 65-48s59 18 65 48z" fill="#f0c020"/>
+        <rect x="60" y="58" width="150" height="14" rx="7" fill="#d9a810"/>
+        <circle cx="135" cy="38" r="9" fill="#a47a08"/><circle cx="135" cy="38" r="4" fill="#f0c020"/>
+        <path d="M96 160l39 22 39-22 6 24-45 14-45-14z" fill="#5a6370"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Aravola custom-auth integration. Keep USE_MOCK false for the real backend. */
+const API_BASE = 'http://localhost:3000';
+const USE_MOCK = false;
+const MOCK_USERS = ['user@example.com', 'user@examle.com'];
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+let verificationToken = null;
+let sessionToken = null;
+
+async function apiRequest(path, body) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  let payload;
+  try { payload = await response.json(); }
+  catch { throw new Error('The server returned an unreadable response.'); }
+
+  if (!response.ok || payload.ok === false) {
+    const error = new Error(payload.error?.message || payload.message || 'The request failed.');
+    error.status = response.status;
+    error.code = payload.error?.code;
+    error.details = payload.error?.details;
+    throw error;
+  }
+  return payload;
+}
+
+/* Submitting an email requests an OTP. A 409 identifies an existing account. */
+async function checkEmailExists(email) {
+  if (USE_MOCK) {
+    await wait(700);
+    return MOCK_USERS.includes(email.toLowerCase());
+  }
+  try {
+    await apiRequest('/api/auth/request-otp', { email });
+    return false;
+  } catch (error) {
+    if (error.status === 409 && error.code === 'EMAIL_ALREADY_REGISTERED') return true;
+    throw error;
+  }
+}
+
+async function loginUser(email, password) {
+  if (USE_MOCK) {
+    await wait(700);
+    return { success: password.length > 0, data: { sessionToken: 'mock-session' } };
+  }
+  const payload = await apiRequest('/api/auth/login', { email, password });
+  return { success: true, data: payload.data };
+}
+
+/* Called after OTP verification; the backend creates the account and session. */
+async function registerUser(email, password, confirmPassword) {
+  if (USE_MOCK) {
+    await wait(800);
+    return { success: true, data: { sessionToken: 'mock-session' } };
+  }
+  if (!verificationToken) {
+    throw new Error('Your email verification has expired. Please verify your email again.');
+  }
+  const payload = await apiRequest('/api/auth/create-password', {
+    verificationToken, password, confirmPassword
+  });
+  return { success: true, data: payload.data };
+}
+
+async function verifyOtp(email, otp) {
+  if (USE_MOCK) {
+    await wait(700);
+    return otp === '123456'
+      ? { success: true, data: { verificationToken: 'mock-verification-token' } }
+      : { success: false, message: 'That code isn’t right. Try again.' };
+  }
+  const payload = await apiRequest('/api/auth/verify-otp', { email, otp });
+  return { success: true, data: payload.data };
+}
+
+/* Resend uses the same backend route and server-enforced cooldown as first send. */
+async function resendOtp(email) {
+  if (USE_MOCK) {
+    await wait(400);
+    return { success: true };
+  }
+  await apiRequest('/api/auth/request-otp', { email });
+  return { success: true };
+}
+
+function onLoginSuccess(data) {
+  sessionToken = data?.sessionToken || null;
+  setNotice('Logged in successfully.');
+}
+
+function onVerified(data) {
+  sessionToken = data?.sessionToken || null;
+  verificationToken = null;
+  setNotice('Your account has been created successfully.');
+}
+
+/* ================= UI / animation ================= */
+const $ = id => document.getElementById(id);
+const modal = $('modal');
+const title = $('title');
+const sub = $('sub');
+const emailEl = $('email');
+const pwEl = $('password');
+const pw2El = $('password2');
+const goBtn = $('goBtn');
+const goLabel = $('goLabel');
+
+const TEXT = {
+  start: { h: 'Hey cool, you made it here', s: '' },
+  back: { h: 'Look who’s back', s: 'Let’s get you logged in' },
+  signup: { h: 'Look who’s here!', s: 'Let’s get you checked in' },
+  otp: { h: 'Check your inbox', s: 'Enter the 6-digit code to continue' }
+};
+
+const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+let stage = 'email';
+let busy = false;
+
+function setNotice(message) { $('notice').textContent = message; }
+
+async function erase(element, speed = 28) {
+  while (element.textContent.length) {
+    element.textContent = element.textContent.slice(0, -1);
+    if (!reduce) await wait(speed);
+  }
+}
+
+async function type(element, value, speed = 45) {
+  for (const character of value) {
+    element.textContent += character;
+    if (!reduce) await wait(speed);
+  }
+}
+
+async function swapText(next, returning) {
+  title.classList.add('caret');
+  await Promise.all([erase(title), erase(sub, 16)]);
+  modal.classList.toggle('returning', returning);
+  await type(title, next.h);
+  if (next.s) {
+    await wait(120);
+    await type(sub, next.s, 28);
+  }
+  title.classList.remove('caret');
+}
+
+function setBusy(isBusy, label) {
+  busy = isBusy;
+  goBtn.disabled = isBusy;
+  goLabel.textContent = label;
+}
+
+const emailWrap = $('emailWrap');
+const pwWrap = $('pwWrap');
+const pw2Wrap = $('pw2Wrap');
+const otpWrap = $('otpWrap');
+const otpBoxes = $('otpBoxes');
+const resendBtn = $('resendBtn');
+const OTP_LEN = 6;
+
+const boxes = Array.from({ length: OTP_LEN }, (_, index) => {
+  const box = document.createElement('input');
+  box.type = 'text';
+  box.inputMode = 'numeric';
+  box.maxLength = 1;
+  box.autocomplete = index ? 'off' : 'one-time-code';
+  box.setAttribute('aria-label', `Digit ${index + 1}`);
+  otpBoxes.appendChild(box);
+  return box;
+});
+
+boxes.forEach((box, index) => {
+  box.addEventListener('input', () => {
+    box.value = box.value.replace(/\D/g, '');
+    if (box.value && index < OTP_LEN - 1) boxes[index + 1].focus();
+  });
+  box.addEventListener('keydown', event => {
+    if (event.key === 'Backspace' && !box.value && index > 0) {
+      boxes[index - 1].value = '';
+      boxes[index - 1].focus();
+    }
+    if (event.key === 'ArrowLeft' && index > 0) boxes[index - 1].focus();
+    if (event.key === 'ArrowRight' && index < OTP_LEN - 1) boxes[index + 1].focus();
+  });
+  box.addEventListener('paste', event => {
+    event.preventDefault();
+    const digits = (event.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, OTP_LEN);
+    [...digits].forEach((digit, digitIndex) => { boxes[digitIndex].value = digit; });
+    boxes[Math.min(digits.length, OTP_LEN - 1)].focus();
+  });
+});
+
+const clearOtp = () => boxes.forEach(box => { box.value = ''; });
+const maskEmail = value => value.replace(/^(.).*(@.*)$/, '$1***$2');
+
+let cooldown = 0;
+let cooldownTimer;
+
+function tickCooldown() {
+  resendBtn.disabled = cooldown > 0;
+  resendBtn.textContent = cooldown > 0
+    ? `Resend in 0:${String(cooldown).padStart(2, '0')}`
+    : 'Resend code';
+}
+
+function startCooldown(seconds = 60) {
+  clearInterval(cooldownTimer);
+  cooldown = seconds;
+  tickCooldown();
+  cooldownTimer = setInterval(() => {
+    cooldown -= 1;
+    tickCooldown();
+    if (cooldown <= 0) clearInterval(cooldownTimer);
+  }, 1000);
+}
+
+resendBtn.addEventListener('click', async () => {
+  if (cooldown > 0 || busy) return;
+  resendBtn.disabled = true;
+  setNotice('');
+  try {
+    await resendOtp(emailEl.value.trim());
+    setNotice('A new code has been sent. Check your inbox and spam folder.');
+    startCooldown(60);
+  } catch (error) {
+    setNotice(error.message || 'Could not resend the code. Please try again.');
+    const retry = Number(error.details?.retryAfterSeconds);
+    startCooldown(Number.isFinite(retry) && retry > 0 ? retry : 10);
+  }
+});
+
+const VIEWS = {
+  email: { text: TEXT.start, returning: false, email: true, password: false, password2: false, otp: false },
+  password: { text: TEXT.back, returning: true, email: true, password: true, password2: false, otp: false },
+  signup: { text: TEXT.signup, returning: true, email: true, password: true, password2: true, otp: false },
+  otp: { text: TEXT.otp, returning: true, email: false, password: false, password2: false, otp: true }
+};
+
+function setWrap(element, visible) {
+  element.classList.toggle('show', visible);
+  element.setAttribute('aria-hidden', visible ? 'false' : 'true');
+}
+
+const idleLabel = () => stage === 'otp' ? 'Verify' : 'Let’s Go';
+
+async function goTo(view) {
+  const config = VIEWS[view];
+  emailEl.readOnly = view !== 'email';
+  emailEl.classList.toggle('active', view !== 'email');
+  pwEl.autocomplete = view === 'signup' ? 'new-password' : 'current-password';
+
+  setWrap(emailWrap, config.email);
+  setWrap(pwWrap, config.password);
+  setWrap(pw2Wrap, config.password2);
+  setWrap(otpWrap, config.otp);
+
+  if (view === 'email') {
+    pwEl.value = '';
+    pw2El.value = '';
+    verificationToken = null;
+  }
+
+  if (view !== 'otp') {
+    clearOtp();
+    clearInterval(cooldownTimer);
+  }
+
+  if (view === 'otp') {
+    $('otpTo').textContent = `Code sent to ${maskEmail(emailEl.value.trim())}`;
+    startCooldown(60);
+  }
+
+  goLabel.textContent = view === 'otp' ? 'Verify' : 'Let’s Go';
+  await swapText(config.text, config.returning);
+  stage = view;
+  (view === 'otp' ? boxes[0] : view === 'email' ? emailEl : pwEl).focus();
+}
+
+$('form').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (busy) return;
+
+  const email = emailEl.value.trim();
+  setNotice('');
+
+  try {
+    if (stage === 'email') {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setNotice('Enter a valid email address.');
+        return;
+      }
+      setBusy(true, 'Checking…');
+      const exists = await checkEmailExists(email);
+      await goTo(exists ? 'password' : 'otp');
+    } else if (stage === 'password') {
+      if (!pwEl.value) {
+        setNotice('Enter your password.');
+        return;
+      }
+      setBusy(true, 'Logging in…');
+      const result = await loginUser(email, pwEl.value);
+      if (result.success) onLoginSuccess(result.data);
+    } else if (stage === 'otp') {
+      const otp = boxes.map(box => box.value).join('');
+      if (otp.length !== OTP_LEN) {
+        setNotice('Enter the 6-digit code.');
+        return;
+      }
+      setBusy(true, 'Verifying…');
+      const result = await verifyOtp(email, otp);
+      if (result.success && result.data?.verificationToken) {
+        verificationToken = result.data.verificationToken;
+        await goTo('signup');
+      } else {
+        setNotice(result.message || 'That code isn’t right. Try again.');
+        clearOtp();
+        boxes[0].focus();
+      }
+    } else if (stage === 'signup') {
+      if (pwEl.value.length < 8) {
+        setNotice('Use at least 8 characters for your password.');
+        return;
+      }
+      if (pwEl.value !== pw2El.value) {
+        setNotice('Passwords don’t match.');
+        return;
+      }
+      setBusy(true, 'Creating…');
+      const result = await registerUser(email, pwEl.value, pw2El.value);
+      if (result.success) onVerified(result.data);
+    }
+  } catch (error) {
+    console.error('[auth] Request failed:', error);
+    setNotice(error.message || 'Something went wrong. Please try again.');
+  } finally {
+    setBusy(false, idleLabel());
+  }
+});
+
+$('backBtn').addEventListener('click', async () => {
+  if (busy || stage === 'email') return;
+  busy = true;
+  setNotice('');
+  try {
+    if (stage === 'otp') {
+      await goTo('email');
+      setNotice('Your code may still be valid. Submit the email again when ready.');
+    } else if (stage === 'signup') {
+      await goTo('otp');
+    } else {
+      await goTo('email');
+    }
+  } finally {
+    busy = false;
+  }
+});
+
+$('closeBtn').addEventListener('click', () => { modal.hidden = true; });
+document.querySelector('.login-btn').addEventListener('click', () => { modal.hidden = false; });
+</script>
+</body>
+</html>
