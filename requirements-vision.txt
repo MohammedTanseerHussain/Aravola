@@ -1,0 +1,4 @@
+# Optional person/face detection for gold_outline, motion_track and thug_life.
+# ultralytics pulls in torch; install the CPU wheel if you do not need CUDA.
+-r requirements.txt
+ultralytics>=8.0
